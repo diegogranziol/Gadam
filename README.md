@@ -1,4 +1,4 @@
-# Code Submission for Iterate Averaging Helps: An Alternative Perspective in Deep Learning
+# Code Submission for Gadam: Combining Adaptivity with Iterate Averaging Gives Greater Generalisation.
 
 ## Environment
 The code has been written in Python 3.7, Pytorch 1.1 (it should run in Pytorch 1.2, too. But there are unsuppressed, 
@@ -17,14 +17,36 @@ recurrent warnings if PyTorch 1.2 is used when running the RNN-based models). *T
 1. Download the CIFAR-10/100/ImageNet data into a folder. Assuming this is saved in data/ directory under the root path (Note: as per request from ImageNet, the downloading facility of the imagenet data loader in the code submission is removed.)
 2. Run run_vision.py. Here we provide some examples
 
+on CIFAR 100:
 ```bash
-# Run SGD on VGG-16 (with batch normalisation) on CIFAR-100. This should give a test accuracy of around 74.2%
+## Run VGG-16 (with batch normalisation) on CIFAR-100. You should expect results broadly on par with the results Table 3 of the paper.
 python3 -u run_vision.py --dir out/ --data_path data/ --dataset CIFAR100 --model VGG16BN --lr_init 0.1 --epochs 300 --use_test
-# Run Gadam, with initial lr = 0.001 and IA lr = 0.0005 on CIFAR-100 in PreResNet-110 architecture. You should expect around 77.4%
-python3 -u run_vision.py --dir out/ --data_path data/ --dataset CIFAR100 --model PreResNet110 --lr_init 0.001 --optim Gadam --ia_lr 0.0005 --wd 0.1 --use_test
-# Run GadamX on ResNeXt-29. You should expect around 83.4% (ref: the baseline [1] is 82.2%)
+python3 -u run_vision.py --dir out/ --data_path data/ --dataset CIFAR100 --model VGG16BN --lr_init 0.1 --ia_lr 0.05 --optim SWA --epochs 300 --use_test
+python3 -u run_vision.py --dir out/ --data_path data/ --dataset CIFAR100 --model VGG16BN --lr_init 0.0005 --optim AdamW --epochs 300 --wd 0.25 --use_test
+python3 -u run_vision.py --dir out/ --data_path data/ --dataset CIFAR100 --model VGG16BN --lr_init 0.0005 --optim Gadam --epochs 300 --use_test --ia_lr 0.00025 --wd 0.25
+python3 -u run_vision.py --dir out/ --data_path data/ --dataset CIFAR100 --model VGG16BN --lr_init 0.1 --optim GadamX --epochs 300 --use_test --ia_lr 0.05 --wd 0.0025
+
+## PRN-110
+python3 -u run_vision.py --dir out/ --data_path data/ --dataset CIFAR100 --model PreResNet110 --lr_init 0.1 --epochs 300 --use_test
+python3 -u run_vision.py --dir out/ --data_path data/ --dataset CIFAR100 --model PreResNet110 --lr_init 0.1 --ia_lr 0.05 --optim SWA --epochs 300 --use_test
+python3 -u run_vision.py --dir out/ --data_path data/ --dataset CIFAR100 --model PreResNet110 --lr_init 0.001 --optim AdamW --epochs 300 --wd 0.1 --use_test
+python3 -u run_vision.py --dir out/ --data_path data/ --dataset CIFAR100 --model PreResNet110 --lr_init 0.001 --optim Gadam --epochs 300 --use_test --ia_lr 0.0005 --wd 0.1
+python3 -u run_vision.py --dir out/ --data_path data/ --dataset CIFAR100 --model PreResNet110 --lr_init 0.1 --optim GadamX --epochs 300 --use_test --ia_lr 0.05 --wd 0.0025
+
+## ResNeXt-29
+python3 -u run_vision.py --dir out/ --data_path data/ --dataset CIFAR100 --model ResNeXt29CIFAR --lr_init 0.1 --epochs 300 --use_test
+python3 -u run_vision.py --dir out/ --data_path data/ --dataset CIFAR100 --model ResNeXt29CIFAR --lr_init 0.1 --ia_lr 0.05 --optim SWA --epochs 300 --use_test
+python3 -u run_vision.py --dir out/ --data_path data/ --dataset CIFAR100 --model ResNeXt29CIFAR --lr_init 0.001 --optim AdamW --epochs 300 --use_test  --wd 0.3
+python3 -u run_vision.py --dir out/ --data_path data/ --dataset CIFAR100 --model ResNeXt29CIFAR --lr_init 0.001 --optim Gadam --epochs 300 --use_test --ia_lr 0.0005 --wd 0.3
 python3 -u run_vision.py --dir out/ --data_path data/ --dataset CIFAR100 --model ResNeXt29CIFAR --lr_init 0.1 --optim GadamX --ia_lr 0.05 --wd 0.003 --use_test
+```
+on ImageNet 32x32:
+```bash
 # Some ImageNet experiment: run WideResNet28x10 with GadamX for 50 epochs. This should give you around 84.8% in Top 5 accuracy (ref: baseline in [2] is around 81%). --linear_annealing forces IA experiments to have the same learning rate schedule as the conventional ones.
+python3 -u run_vision.py --dir out/ --data_path data/ --dataset ImageNet32 --model WideResNet28x10 --lr_init 0.03 --wd 1e-4 --epochs 50 --linear_annealing --use_test
+python3 -u run_vision.py --dir out/ --data_path data/ --dataset ImageNet32 --model WideResNet28x10 --lr_init 0.03 --optim SWA --wd 1e-4 --epochs 50 --linear_annealing --use_test
+python3 -u run_vision.py --dir out/ --data_path data/ --dataset ImageNet32 --model WideResNet28x10 --lr_init 0.001 --optim AdamW --wd 0.01 --epochs 50 --linear_annealing --use_test
+python3 -u run_vision.py --dir out/ --data_path data/ --dataset ImageNet32 --model WideResNet28x10 --lr_init 0.001 --optim Gadam --wd 0.01 --epochs 50 --linear_annealing --use_test
 python3 -u run_vision.py --dir out/ --data_path data/ --dataset ImageNet32 --model WideResNet28x10 --lr_init 0.03 --optim GadamX --wd 3e-4 --epochs 50 --linear_annealing --use_test
 ```
 
@@ -48,9 +70,11 @@ python3 -u run_language.py --data_path data/ --dir out/ --dataset PTB --epochs 5
 
 # To achieve the similar baseline we obtained in 200 epochs, simply replace --epochs 500 with --epochs 200
 python3 -u run_language.py --data_path data/ --dir out/ --dataset PTB --epochs 200 --save PTB.pt
+# To run Adam
+python3 -u run_language.py --data_path data/ --dir out/ --dataset PTB --epochs 200 --optimizer Adam --lr 0.003
 
 # To run Gadam, 
-python3 -u run_language.py --data_path data/ --dir out/ --dataset PTB --epochs 200 --save PTB.pt --optimizer Gadam --ia_start 100 --lr 0.03
+python3 -u run_language.py --data_path data/ --dir out/ --dataset PTB --epochs 200 --save PTB.pt --optimizer Gadam --ia_start 100 --lr 0.003
 # This should give perplexity of around 61.4/58.7 (val/test) in 200 epochs
 ```
 
